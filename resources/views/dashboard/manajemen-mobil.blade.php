@@ -188,23 +188,34 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch("{{ route('dashboard.admin.mobil.store') }}", {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
                 body: formData
             });
 
-            const data = await response.json();
-            if (response.ok && data.success) {
-                addCarForm.reset();
-                closeModal();
-                showToast('✅ Mobil berhasil ditambahkan!');
-                location.reload(); // reload supaya daftar ikut update
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    addCarForm.reset();
+                    closeModal();
+                    showToast('✅ Mobil berhasil ditambahkan!');
+                    location.reload();
+                } else {
+                    showToast(data.message || '⚠️ Gagal menambah mobil.', '#f59e0b');
+                }
             } else {
-                showToast('⚠️ Gagal menambah mobil.', '#f59e0b');
+                const errorText = await response.text();
+                console.error('Server response:', errorText);
+                showToast('💥 Terjadi kesalahan server.', '#ef4444');
             }
-        } catch {
+        } catch (error) {
+            console.error('Fetch error:', error);
             showToast('💥 Terjadi kesalahan server.', '#ef4444');
         }
     });
+
 });
 
 // ✏️ EDIT MOBIL
